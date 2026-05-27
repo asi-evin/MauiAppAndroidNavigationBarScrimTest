@@ -4,7 +4,7 @@ namespace MauiAppAndroidNavigationBarScrimTest;
 
 public partial class MainPage : ContentPage
 {
-    private DisplayOrientation _previousDisplayOrientation;
+    private DisplayRotation _previousDisplayRotation;
 
     public MainPage()
     {
@@ -12,10 +12,10 @@ public partial class MainPage : ContentPage
 
         DeviceDisplay.MainDisplayInfoChanged += (sender, args) =>
         {
-            if (_previousDisplayOrientation != args.DisplayInfo.Orientation)
+            if (_previousDisplayRotation != args.DisplayInfo.Rotation)
             {
-                _previousDisplayOrientation = args.DisplayInfo.Orientation;
-                InvalidateNavBarContrast(args.DisplayInfo.Orientation);
+                _previousDisplayRotation = args.DisplayInfo.Rotation;
+                InvalidateNavBarContrast(args.DisplayInfo.Rotation);
             }
         };
 
@@ -23,22 +23,23 @@ public partial class MainPage : ContentPage
         {
             //hack: needs some startup time if starting in landscape
             await Task.Delay(1000);
-            InvalidateNavBarContrast(DeviceDisplay.MainDisplayInfo.Orientation);
+            InvalidateNavBarContrast(DeviceDisplay.MainDisplayInfo.Rotation);
         };
     }
 
-    private static void InvalidateNavBarContrast(DisplayOrientation args)
+    private static void InvalidateNavBarContrast(DisplayRotation args)
     {
 #if ANDROID
         switch (args)
         {
-            case DisplayOrientation.Unknown:
-            case DisplayOrientation.Portrait:
+            case DisplayRotation.Rotation0:
+            case DisplayRotation.Rotation180:
 
                 Static.AndroidNavigationBar.SetSCrimContrast(false);
 
                 break;
-            case DisplayOrientation.Landscape:
+            case DisplayRotation.Rotation270:
+            case DisplayRotation.Rotation90:
 
                 Static.AndroidNavigationBar.SetSCrimContrast(true);
 
