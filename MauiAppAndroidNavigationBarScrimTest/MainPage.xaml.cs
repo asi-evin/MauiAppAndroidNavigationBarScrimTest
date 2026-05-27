@@ -1,34 +1,51 @@
-﻿namespace MauiAppAndroidNavigationBarScrimTest
+﻿using Android.Content.Res;
+
+namespace MauiAppAndroidNavigationBarScrimTest;
+
+public partial class MainPage : ContentPage
 {
-    public partial class MainPage : ContentPage
+    private DisplayOrientation _previousDisplayOrientation;
+
+    public MainPage()
     {
-        int count = 0;
+        InitializeComponent();
 
-        public MainPage()
+        DeviceDisplay.MainDisplayInfoChanged += (sender, args) =>
         {
-            InitializeComponent();
-
-#if ANDROID
-            DeviceDisplay.MainDisplayInfoChanged += (sender, args) =>
+            if (_previousDisplayOrientation != args.DisplayInfo.Orientation)
             {
-                switch (args.DisplayInfo.Orientation)
-                {
-                    case DisplayOrientation.Unknown:
-                    case DisplayOrientation.Portrait:
+                _previousDisplayOrientation = args.DisplayInfo.Orientation;
+                InvalidateNavBarContrast(args.DisplayInfo.Orientation);
+            }
+        };
 
-                        Static.AndroidNavigationBar.SetSCrimContrast(false);
+        Appearing += async (sender, args) =>
+        {
+            //hack: needs some startup time if starting in landscape
+            await Task.Delay(1000);
+            InvalidateNavBarContrast(DeviceDisplay.MainDisplayInfo.Orientation);
+        };
+    }
 
-                        break;
-                    case DisplayOrientation.Landscape:
+    private static void InvalidateNavBarContrast(DisplayOrientation args)
+    {
+#if ANDROID
+        switch (args)
+        {
+            case DisplayOrientation.Unknown:
+            case DisplayOrientation.Portrait:
 
-                        Static.AndroidNavigationBar.SetSCrimContrast(true);
+                Static.AndroidNavigationBar.SetSCrimContrast(false);
 
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            };
-#endif
+                break;
+            case DisplayOrientation.Landscape:
+
+                Static.AndroidNavigationBar.SetSCrimContrast(true);
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
+#endif
     }
 }
